@@ -52,22 +52,14 @@ EAPR customer benefits per Schedule EAPR Sec III (Residential):
  >100-150% $10/month
  >150-200% $0/month
 
- NOT MODELED. The "100% reduction up to $X cap" pattern is a
- cap-on-credit semantic. It is not a flat per-kWh credit (the
- discount evaporates once the customer hits the monthly cap), and
- it is not a flat per-month credit (the customer pays nothing if
- they're under the cap, then resumes paying full rate). URPX v0.5.1
- does carry that shape: marginal ServiceBrackets over a
- money-denominated MetricInput, with a -1.0 multiplier on the first
- bracket and 0.0 on the rest. What it cannot state is that a bracket
- bound of 60 means sixty dollars, since a bracket bound carries no
- unit and urpx:unitOfMeasure attaches only to a MetricSpecification.
- That is a different question from the LADWP NEM and SMUD NEM1
- export credit (urpx-org/urpx discussion #63) and from the
- percentage-of-bill discount (#34, cited here previously, answered
- by urpx:multiplier over urpx:basedOnPrice). No upstream thread
- covers this case yet; the worked construction is in
- MODELING-GAPS.md.
+ MODELED against vocabulary in a draft urpx-org/urpx PR, not in
+ any URPX release (see deferral 1). A calculated MetricInput in
+ urpx:currencyUnit carries the billing period's usage cost. One
+ calculated MetricInput per FPL band carries min(usage cost, cap)
+ as a urpx:ValueExpression with urpx:minOperator on its
+ CalculationMethod. A ProfileAlternatives over the custom dimension
+ federalPovertyLevelBand selects one of four PriceSetAlternatives,
+ each a Price of -1 per dollar on its band's capped MetricInput.
 
  (3) ERSF (Rate Stabilization Fund) Additional Monthly Discount
  (0-50% FPL only): $0-$35/month additional discount, determined
@@ -78,17 +70,10 @@ EAPR customer benefits per Schedule EAPR Sec III (Residential):
 
 ## What this modifier captures
 
-Single per-meter-per-day Price for the $10/month BSC discount
-(modeled as $-0.3289/day = $10/30.4 days). This represents one of
-the two main EAPR benefits and is the more straightforward of the
-two to model.
-
-For a typical EAPR customer in the 0-50% FPL tier with ~500 kWh/mo
-usage, the modeled $10/month discount captures roughly 14% of the
-total EAPR benefit; the other ~86% (the $60/mo usage cap + ERSF
-additional discount) is not captured. For higher-FPL-tier customers
-(150-200% FPL) where the usage cap is $0, the BSC discount is the
-ENTIRE EAPR benefit and the model is complete.
+The $10/month System Infrastructure Fixed Charge discount as a
+-10.00 per meter per month Price, and the Section III.2 usage
+discount capped by FPL band as described under (2) above. The
+ERSF additional discount (3) is not captured.
 
 ## Eligibility specifics
 
@@ -112,10 +97,9 @@ same SMUD residential base, both per-month credits should apply.
 ## What this modifier does NOT capture (deferred)
 
  1. **Income-tier-conditional usage discount cap** ($60/$32/$10/$0
- per month, depending on FPL tier) — primary EAPR benefit, not
- modeled. Blocked on stating the dollar denomination of a bracket
- bound, not on cap-on-credit vocabulary (see above). The $10/month
- BSC discount captured here is the secondary EAPR benefit.
+ per month, depending on FPL tier): modeled against a draft
+ urpx-org/urpx PR (see deferral 1), so it validates only against
+ that PR's shapes.
 
  2. **ERSF Additional Monthly Discount** ($0-$35/month for 0-50%
  FPL tier only, formulaic, year-by-year) — not modeled.
@@ -145,7 +129,7 @@ validated_on = "2026-09-20"
 [modeling]
 complete = false
 deferrals = [
- "Section III.2, Sheet EAPR-1: a 100 percent reduction in electricity usage cost per kWh, capped at a maximum monthly discount that steps with federal poverty level ($60 at 0-50 percent, $32 above 50 to 100 percent, $10 above 100 to 150 percent, $0 above 150 to 200 percent). This is the larger of the two residential EAPR benefits and is not modeled. Blocked at v0.5.1 in two independent places. First, the dollar denomination of the cap cannot be stated: ServiceBracketShape is sh:closed with lowerBound and upperBound as xsd:decimal and no unit slot, and urpx:unitOfMeasure has rdfs:domain MetricSpecification only, with no currency among the 55 members of UnitOfMeasureValue, so a bound of 60 cannot be said to mean sixty dollars. Second, there is no way to bound a credit by the value of another price. Verified against urpx-org/urpx abdfb521.",
+ "Section III.2, Sheet EAPR-1: a 100 percent reduction in electricity usage cost per kWh, capped at a maximum monthly discount that steps with federal poverty level ($60 at 0-50 percent, $32 above 50 to 100 percent, $10 above 100 to 150 percent, $0 above 150 to 200 percent). Modeled on branch dcj/eapr-capped-discount, using three terms no URPX release defines: urpx:ValueExpression, urpx:minOperator and urpx:currencyUnit, with urpx:hasValueExpression on CalculationMethod. They are proposed in a draft urpx-org/urpx PR implementing part of urpx-dev spec 041, value expressions (branch dcj/value-expressions-min-max, commit b1c56e6f); against the pinned shapes the filing fails SHACL on exactly those terms, and it conforms against that commit. Four urpx:ProfileAlternative over the custom dimension federalPovertyLevelBand each select a Price of -1 per dollar on a calculated urpx:MetricInput whose CalculationMethod carries min(usage cost, cap). The usage cost is a calculated MetricInput in urpx:currencyUnit whose derivation, the sum of the base plan's Electricity Usage Charges over the billing period, is carried as urpx:calculationFormula text rather than as a structured expression. Whether the Section VI Hydro Generation Adjustment surcharge counts as usage cost is not stated by this schedule; HGA is not modeled in the SMUD base plans.",
  "Section III.3, Sheet EAPR-1: the EAPR Rate Stabilization Fund additional monthly discount, $0 to $35 per month, available only at 0 to 50 percent of federal poverty level. Not modeled because this filing publishes only the band; the schedule says the Accountant determines the amount annually from available discretionary non-retail rate revenue and fixes it before the year it applies, and no year's figure appears in this PDF. A source gap, not a vocabulary gap. A declarative band via hasDynamicPricing priceFloor and priceCeiling would validate, but it would bound the discount without stating an amount to bill.",
  "Section V, Sheet EAPR-2: this schedule prices four discounts outside residential service and none is modeled. Nonprofit accounts on a residential rate receive the maximum residential discount (the schedule does not define that term). Eligible Commercial and Industrial customers receive 15 percent off the Electricity Usage Charge (kWh), Maximum Demand Charge (kW), Site Infrastructure Charge (kW) and Summer Peak Demand Charge (kW) each billing period. CI-TOD1's System Infrastructure Fixed Charge receives 35 percent, and CI-TOD2, CI-TOD3 and CI-TOD4's receive 15 percent. The percentages themselves are expressible (urpx:multiplier with urpx:basedOnPrice on PriceShape, the pattern that resolves for the CARE and FERA discounts), so nothing here is blocked by vocabulary. Whether they count against a residential-focused corpus is an open corpus-level scope ruling: LAYOUT 4.4 scopes complete to the source document, which argues they count, while no SMUD Commercial and Industrial base plan exists here for them to attach to. The ruling belongs in MODELING-GAPS.md and settles sce:da-crs, sce:cca-crs and sdge:care Section 2 at the same time. Section IV (nonprofit eligibility) and Section VI (a cross-reference to Schedule HGA) price nothing and are correctly out of scope.",
  "Section VIII, Sheet EAPR-3: the $10 per month System Infrastructure Fixed Charge discount that this filing does model is prorated for billing periods shorter than 27 days, on the relationship between the length of the billing period and 30 days, while the maximum electricity usage discount is expressly not prorated regardless of the number of days or of spanning seasons. Neither rule is carried. urpx:prorationMethod would state the first: it is xsd:string, 0..1, on BillingModelShape. It is free text and no filing in this corpus uses it, so it would carry the rule as prose rather than as a computable adjustment.",
@@ -156,4 +140,4 @@ deferrals = [
 # Review ----------------------------------------------------------------------
 [review]
 status = "draft"
-notes = "first filing of SMUD EAPR. Single per-meter-per-day credit for the $10/month BSC discount (modeled as -$0.3289/day = $10/30.4 days). Income-tier usage-cap discount deferred (blocked on unit-bearing bracket bounds, no upstream thread yet). For 150-200% FPL customers (where usage cap = $0), the BSC discount is the ENTIRE EAPR benefit; for 0-50% FPL customers, modeled BSC discount captures ~14% of benefit. Eligibility predicate: 'Program Enrollment' = 'Energy Assistance Program (EAPR)'. applicableToRatePlan: 2 SMUD residential bases (tod-5-8pm, fixed). Stacks additively with MED."
+notes = "first filing of SMUD EAPR. $10/month BSC discount as a -10.00 per month credit. Income-tier usage-cap discount modeled on branch dcj/eapr-capped-discount against a draft urpx-org/urpx PR (ValueExpression with minOperator, currencyUnit). For 150-200% FPL customers (where usage cap = $0), the BSC discount is the ENTIRE EAPR benefit; for 0-50% FPL customers, modeled BSC discount captures ~14% of benefit. Eligibility predicate: 'Program Enrollment' = 'Energy Assistance Program (EAPR)'. applicableToRatePlan: 2 SMUD residential bases (tod-5-8pm, fixed). Stacks additively with MED."

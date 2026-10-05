@@ -46,6 +46,9 @@
     "skos": "http://www.w3.org/2004/02/skos/core#",
     "urpx:evaluatedOn": {
       "@type": "xsd:dateTime"
+    },
+    "urpx:decimalValue": {
+      "@type": "xsd:decimal"
     }
   },
   "@type": "urpx:URPXPackage",
@@ -66,7 +69,7 @@
       "urpx:changeReason": {
         "@id": "urpx:initial"
       },
-      "urpx:description": "SMUD's Energy Assistance Program Rate (EAPR) — income-qualified bill discount applied as an overlay to any SMUD residential base RatePlan. Functionally analogous to the CPUC's CARE program at SCE/PG&E/SDG&E, though structurally different: SMUD's EAPR has TWO discount components — (1) a flat $10/month System Infrastructure Fixed Charge discount, and (2) a 100%-reduction-up-to-cap on electricity usage cost where the monthly cap varies by Federal Poverty Level (FPL) tier ($60 for 0-50% FPL, $32 for >50-100%, $10 for >100-150%, $0 for >150-200%). Adopted under SMUD Board Resolution 23-09-09 effective September 22, 2023. Eligibility (Sec II): residential customer income at-or-below 200% FPL, customer not claimed as dependent, primary residence. This filing models ONLY the $10/month BSC discount (as $-0.3289/day = $10/30.4 days). The cap-on-usage discount is NOT modeled — it's the URPX#24 cap-on-credit / computed-from-upstream-context territory that lacks a v0.5.1 primitive (modeling forward-compatible if URPX adds the vocabulary). For typical EAPR customers in higher-FPL tiers (150-200% where usage cap = $0), the BSC discount captured here is the ENTIRE EAPR benefit; for lower-FPL tiers, it's a fraction (~14% for 0-50% FPL with 500 kWh/month). The ERSF Additional Monthly Discount ($0-$35/month for 0-50% FPL only, year-by-year formulaic) is also NOT modeled. Stacks additively with MED (Schedule MED Sec III). Sec IV-VI cover Nonprofit Organization eligibility — out of scope for this residential-focused filing.",
+      "urpx:description": "SMUD's Energy Assistance Program Rate (EAPR) — income-qualified bill discount applied as an overlay to any SMUD residential base RatePlan. Functionally analogous to the CPUC's CARE program at SCE/PG&E/SDG&E, though structurally different: SMUD's EAPR has TWO discount components — (1) a flat $10/month System Infrastructure Fixed Charge discount, and (2) a 100%-reduction-up-to-cap on electricity usage cost where the monthly cap varies by Federal Poverty Level (FPL) tier ($60 for 0-50% FPL, $32 for >50-100%, $10 for >100-150%, $0 for >150-200%). Adopted under SMUD Board Resolution 23-09-09 effective September 22, 2023. Eligibility (Sec II): residential customer income at-or-below 200% FPL, customer not claimed as dependent, primary residence. This filing models the $10/month BSC discount as a -10.00 per month credit, and the capped usage discount as min(usage cost, cap) per FPL band, selected by a ProfileAlternatives over federalPovertyLevelBand, using urpx:ValueExpression, urpx:minOperator and urpx:currencyUnit from a draft urpx-org/urpx PR rather than from a URPX release. The ERSF Additional Monthly Discount ($0-$35/month for 0-50% FPL only, year-by-year formulaic) is also NOT modeled. Stacks additively with MED (Schedule MED Sec III). Sec IV-VI cover Nonprofit Organization eligibility — out of scope for this residential-focused filing.",
       "urpx:effectiveDateTime": "2023-09-22T00:00:00",
       "urpx:priceCurrency": "USD",
       "urpx:commodity": {
@@ -175,6 +178,238 @@
             "urpx:profileMetricProperty": {
               "@id": "urpx:meterCount"
             }
+          },
+          {
+            "@type": "urpx:MetricInput",
+            "@id": "smud:eapr-2023-09-22-mi-usage-cost",
+            "urpx:name": "Electricity usage cost for the billing period",
+            "urpx:description": "The customer's electricity usage cost for the billing period under the base rate plan: the sum of its Electricity Usage Charges, kWh times the per-kWh usage price in effect. The amount Schedule EAPR Section III.2 reduces by 100 percent up to the monthly maximum.",
+            "urpx:metricInputType": {
+              "@id": "urpx:calculatedMetricInput"
+            },
+            "urpx:hasMetricSpecification": {
+              "@type": "urpx:MetricSpecification",
+              "@id": "smud:eapr-2023-09-22-mi-usage-cost-metric-specification",
+              "urpx:commodity": {
+                "@id": "urpx:electricity"
+              },
+              "urpx:unitOfMeasure": {
+                "@id": "urpx:currencyUnit"
+              }
+            },
+            "urpx:hasCalculationMethod": {
+              "@type": "urpx:CalculationMethod",
+              "@id": "smud:eapr-2023-09-22-mi-usage-cost-calculation-method",
+              "urpx:aggregationMethod": {
+                "@id": "urpx:sum"
+              },
+              "urpx:intervalDuration": "P1M",
+              "urpx:calculationFormula": "sum over the billing period of (kWh x base-plan Electricity Usage Charge per kWh)"
+            }
+          },
+          {
+            "@type": "urpx:MetricInput",
+            "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-0-50",
+            "urpx:name": "EAPR electricity usage discount, 0 to 50 percent of the federal poverty level",
+            "urpx:description": "Schedule EAPR Section III.2 at 0 to 50 percent of the federal poverty level: a 100 percent reduction in electricity usage cost up to a maximum of $60 per month, so the lesser of the billing period's usage cost and 60. Not prorated (Section VIII).",
+            "urpx:metricInputType": {
+              "@id": "urpx:calculatedMetricInput"
+            },
+            "urpx:hasMetricSpecification": {
+              "@type": "urpx:MetricSpecification",
+              "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-0-50-metric-specification",
+              "urpx:commodity": {
+                "@id": "urpx:electricity"
+              },
+              "urpx:unitOfMeasure": {
+                "@id": "urpx:currencyUnit"
+              }
+            },
+            "urpx:hasCalculationMethod": {
+              "@type": "urpx:CalculationMethod",
+              "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-0-50-calculation-method",
+              "urpx:intervalDuration": "P1M",
+              "urpx:calculatedBasedOn": {
+                "@id": "smud:eapr-2023-09-22-mi-usage-cost"
+              },
+              "urpx:calculationFormula": "min(usage cost, 60)",
+              "urpx:hasValueExpression": {
+                "@type": "urpx:ValueExpression",
+                "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-0-50-calculation-method-value-expression",
+                "urpx:rootNode": {
+                  "@type": "urpx:OperationNode",
+                  "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-0-50-calculation-method-value-expression-root-node",
+                  "urpx:operator": {
+                    "@id": "urpx:minOperator"
+                  },
+                  "urpx:leftOperand": {
+                    "@type": "urpx:ObjectOperandNode",
+                    "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-0-50-calculation-method-value-expression-root-node-left-operand",
+                    "urpx:referencesMetricInput": {
+                      "@id": "smud:eapr-2023-09-22-mi-usage-cost"
+                    }
+                  },
+                  "urpx:rightOperand": {
+                    "@type": "urpx:DatatypeOperandNode",
+                    "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-0-50-calculation-method-value-expression-root-node-right-operand",
+                    "urpx:decimalValue": "60"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "@type": "urpx:MetricInput",
+            "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-50-100",
+            "urpx:name": "EAPR electricity usage discount, above 50 to 100 percent of the federal poverty level",
+            "urpx:description": "Schedule EAPR Section III.2 at above 50 to 100 percent of the federal poverty level: a 100 percent reduction in electricity usage cost up to a maximum of $32 per month, so the lesser of the billing period's usage cost and 32. Not prorated (Section VIII).",
+            "urpx:metricInputType": {
+              "@id": "urpx:calculatedMetricInput"
+            },
+            "urpx:hasMetricSpecification": {
+              "@type": "urpx:MetricSpecification",
+              "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-50-100-metric-specification",
+              "urpx:commodity": {
+                "@id": "urpx:electricity"
+              },
+              "urpx:unitOfMeasure": {
+                "@id": "urpx:currencyUnit"
+              }
+            },
+            "urpx:hasCalculationMethod": {
+              "@type": "urpx:CalculationMethod",
+              "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-50-100-calculation-method",
+              "urpx:intervalDuration": "P1M",
+              "urpx:calculatedBasedOn": {
+                "@id": "smud:eapr-2023-09-22-mi-usage-cost"
+              },
+              "urpx:calculationFormula": "min(usage cost, 32)",
+              "urpx:hasValueExpression": {
+                "@type": "urpx:ValueExpression",
+                "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-50-100-calculation-method-value-expression",
+                "urpx:rootNode": {
+                  "@type": "urpx:OperationNode",
+                  "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-50-100-calculation-method-value-expression-root-node",
+                  "urpx:operator": {
+                    "@id": "urpx:minOperator"
+                  },
+                  "urpx:leftOperand": {
+                    "@type": "urpx:ObjectOperandNode",
+                    "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-50-100-calculation-method-value-expression-root-node-left-operand",
+                    "urpx:referencesMetricInput": {
+                      "@id": "smud:eapr-2023-09-22-mi-usage-cost"
+                    }
+                  },
+                  "urpx:rightOperand": {
+                    "@type": "urpx:DatatypeOperandNode",
+                    "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-50-100-calculation-method-value-expression-root-node-right-operand",
+                    "urpx:decimalValue": "32"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "@type": "urpx:MetricInput",
+            "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-100-150",
+            "urpx:name": "EAPR electricity usage discount, above 100 to 150 percent of the federal poverty level",
+            "urpx:description": "Schedule EAPR Section III.2 at above 100 to 150 percent of the federal poverty level: a 100 percent reduction in electricity usage cost up to a maximum of $10 per month, so the lesser of the billing period's usage cost and 10. Not prorated (Section VIII).",
+            "urpx:metricInputType": {
+              "@id": "urpx:calculatedMetricInput"
+            },
+            "urpx:hasMetricSpecification": {
+              "@type": "urpx:MetricSpecification",
+              "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-100-150-metric-specification",
+              "urpx:commodity": {
+                "@id": "urpx:electricity"
+              },
+              "urpx:unitOfMeasure": {
+                "@id": "urpx:currencyUnit"
+              }
+            },
+            "urpx:hasCalculationMethod": {
+              "@type": "urpx:CalculationMethod",
+              "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-100-150-calculation-method",
+              "urpx:intervalDuration": "P1M",
+              "urpx:calculatedBasedOn": {
+                "@id": "smud:eapr-2023-09-22-mi-usage-cost"
+              },
+              "urpx:calculationFormula": "min(usage cost, 10)",
+              "urpx:hasValueExpression": {
+                "@type": "urpx:ValueExpression",
+                "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-100-150-calculation-method-value-expression",
+                "urpx:rootNode": {
+                  "@type": "urpx:OperationNode",
+                  "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-100-150-calculation-method-value-expression-root-node",
+                  "urpx:operator": {
+                    "@id": "urpx:minOperator"
+                  },
+                  "urpx:leftOperand": {
+                    "@type": "urpx:ObjectOperandNode",
+                    "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-100-150-calculation-method-value-expression-root-node-left-operand",
+                    "urpx:referencesMetricInput": {
+                      "@id": "smud:eapr-2023-09-22-mi-usage-cost"
+                    }
+                  },
+                  "urpx:rightOperand": {
+                    "@type": "urpx:DatatypeOperandNode",
+                    "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-100-150-calculation-method-value-expression-root-node-right-operand",
+                    "urpx:decimalValue": "10"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "@type": "urpx:MetricInput",
+            "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-150-200",
+            "urpx:name": "EAPR electricity usage discount, above 150 to 200 percent of the federal poverty level",
+            "urpx:description": "Schedule EAPR Section III.2 at above 150 to 200 percent of the federal poverty level: a 100 percent reduction in electricity usage cost up to a maximum of $0 per month, so the lesser of the billing period's usage cost and 0. Not prorated (Section VIII).",
+            "urpx:metricInputType": {
+              "@id": "urpx:calculatedMetricInput"
+            },
+            "urpx:hasMetricSpecification": {
+              "@type": "urpx:MetricSpecification",
+              "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-150-200-metric-specification",
+              "urpx:commodity": {
+                "@id": "urpx:electricity"
+              },
+              "urpx:unitOfMeasure": {
+                "@id": "urpx:currencyUnit"
+              }
+            },
+            "urpx:hasCalculationMethod": {
+              "@type": "urpx:CalculationMethod",
+              "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-150-200-calculation-method",
+              "urpx:intervalDuration": "P1M",
+              "urpx:calculatedBasedOn": {
+                "@id": "smud:eapr-2023-09-22-mi-usage-cost"
+              },
+              "urpx:calculationFormula": "min(usage cost, 0)",
+              "urpx:hasValueExpression": {
+                "@type": "urpx:ValueExpression",
+                "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-150-200-calculation-method-value-expression",
+                "urpx:rootNode": {
+                  "@type": "urpx:OperationNode",
+                  "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-150-200-calculation-method-value-expression-root-node",
+                  "urpx:operator": {
+                    "@id": "urpx:minOperator"
+                  },
+                  "urpx:leftOperand": {
+                    "@type": "urpx:ObjectOperandNode",
+                    "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-150-200-calculation-method-value-expression-root-node-left-operand",
+                    "urpx:referencesMetricInput": {
+                      "@id": "smud:eapr-2023-09-22-mi-usage-cost"
+                    }
+                  },
+                  "urpx:rightOperand": {
+                    "@type": "urpx:DatatypeOperandNode",
+                    "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-150-200-calculation-method-value-expression-root-node-right-operand",
+                    "urpx:decimalValue": "0"
+                  }
+                }
+              }
+            }
           }
         ],
         "urpx:hasBillingModel": {
@@ -191,6 +426,28 @@
               "urpx:referencesMetricInput": {
                 "@id": "smud:eapr-mi-meter-count"
               }
+            },
+            {
+              "@type": "urpx:Ledger",
+              "@id": "smud:eapr-2023-09-22-ledger-usage-discount",
+              "urpx:name": "EAPR Electricity Usage Discount",
+              "urpx:ledgerType": {
+                "@id": "urpx:bundledLedger"
+              },
+              "urpx:referencesMetricInput": [
+                {
+                  "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-0-50"
+                },
+                {
+                  "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-50-100"
+                },
+                {
+                  "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-100-150"
+                },
+                {
+                  "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-150-200"
+                }
+              ]
             }
           ],
           "urpx:hasPriceDefinition": [
@@ -216,6 +473,157 @@
               "urpx:referencesLedger": {
                 "@id": "smud:eapr-ledger-bsc-discount"
               }
+            },
+            {
+              "@type": "urpx:PriceDefinition",
+              "@id": "smud:eapr-2023-09-22-pd-usage-discount",
+              "urpx:name": "EAPR Electricity Usage Discount (100 percent of usage cost up to a monthly maximum set by federal poverty level)",
+              "urpx:chargeType": {
+                "@id": "urpx:creditMisc"
+              },
+              "urpx:chargeCategory": {
+                "@id": "urpx:discount"
+              },
+              "urpx:billPortion": {
+                "@id": "urpx:bundledPortion"
+              },
+              "urpx:referencesLedger": {
+                "@id": "smud:eapr-2023-09-22-ledger-usage-discount"
+              },
+              "urpx:referencesProfileAlternatives": {
+                "@id": "smud:eapr-2023-09-22-pa-fpl"
+              }
+            }
+          ]
+        },
+        "urpx:hasProfileAlternatives": {
+          "@type": "urpx:ProfileAlternatives",
+          "@id": "smud:eapr-2023-09-22-pa-fpl",
+          "urpx:name": "Federal poverty level band of total gross household income (Schedule EAPR Section III.2)",
+          "urpx:hasAlternativeDimensions": {
+            "@type": "urpx:AlternativeDimensions",
+            "@id": "smud:eapr-2023-09-22-pa-fpl-alternative-dimensions",
+            "urpx:hasAlternativeDimension": [
+              {
+                "@type": "urpx:AlternativeDimension",
+                "@id": "smud:eapr-2023-09-22-ad-fpl",
+                "urpx:dimensionDisplayName": "Federal Poverty Level",
+                "urpx:customDimensionProperty": "federalPovertyLevelBand",
+                "urpx:hasPossibleValues": {
+                  "@list": [
+                    "0-50%",
+                    ">50 to 100%",
+                    ">100 to 150%",
+                    ">150 to 200%"
+                  ]
+                }
+              }
+            ]
+          },
+          "urpx:hasProfileAlternative": [
+            {
+              "@type": "urpx:ProfileAlternative",
+              "@id": "smud:eapr-2023-09-22-pa-fpl-0-50",
+              "urpx:name": "Household income 0 to 50 percent of the federal poverty level",
+              "urpx:hasConditionExpression": {
+                "@type": "urpx:ConditionExpression",
+                "@id": "smud:eapr-2023-09-22-cx-pa-fpl-0-50",
+                "urpx:rootNode": {
+                  "@type": "urpx:ComparisonNode",
+                  "@id": "smud:eapr-2023-09-22-cn-pa-fpl-0-50",
+                  "urpx:operator": {
+                    "@id": "urpx:equalsOperator"
+                  },
+                  "urpx:leftOperand": {
+                    "@type": "urpx:CustomOperandNode",
+                    "@id": "smud:eapr-2023-09-22-cn-pa-fpl-0-50-left-operand",
+                    "urpx:customConditionProperty": "federalPovertyLevelBand"
+                  },
+                  "urpx:rightOperand": {
+                    "@type": "urpx:CustomOperandNode",
+                    "@id": "smud:eapr-2023-09-22-cn-pa-fpl-0-50-right-operand",
+                    "urpx:stringValue": "0-50%"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "urpx:ProfileAlternative",
+              "@id": "smud:eapr-2023-09-22-pa-fpl-50-100",
+              "urpx:name": "Household income above 50 to 100 percent of the federal poverty level",
+              "urpx:hasConditionExpression": {
+                "@type": "urpx:ConditionExpression",
+                "@id": "smud:eapr-2023-09-22-cx-pa-fpl-50-100",
+                "urpx:rootNode": {
+                  "@type": "urpx:ComparisonNode",
+                  "@id": "smud:eapr-2023-09-22-cn-pa-fpl-50-100",
+                  "urpx:operator": {
+                    "@id": "urpx:equalsOperator"
+                  },
+                  "urpx:leftOperand": {
+                    "@type": "urpx:CustomOperandNode",
+                    "@id": "smud:eapr-2023-09-22-cn-pa-fpl-50-100-left-operand",
+                    "urpx:customConditionProperty": "federalPovertyLevelBand"
+                  },
+                  "urpx:rightOperand": {
+                    "@type": "urpx:CustomOperandNode",
+                    "@id": "smud:eapr-2023-09-22-cn-pa-fpl-50-100-right-operand",
+                    "urpx:stringValue": ">50 to 100%"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "urpx:ProfileAlternative",
+              "@id": "smud:eapr-2023-09-22-pa-fpl-100-150",
+              "urpx:name": "Household income above 100 to 150 percent of the federal poverty level",
+              "urpx:hasConditionExpression": {
+                "@type": "urpx:ConditionExpression",
+                "@id": "smud:eapr-2023-09-22-cx-pa-fpl-100-150",
+                "urpx:rootNode": {
+                  "@type": "urpx:ComparisonNode",
+                  "@id": "smud:eapr-2023-09-22-cn-pa-fpl-100-150",
+                  "urpx:operator": {
+                    "@id": "urpx:equalsOperator"
+                  },
+                  "urpx:leftOperand": {
+                    "@type": "urpx:CustomOperandNode",
+                    "@id": "smud:eapr-2023-09-22-cn-pa-fpl-100-150-left-operand",
+                    "urpx:customConditionProperty": "federalPovertyLevelBand"
+                  },
+                  "urpx:rightOperand": {
+                    "@type": "urpx:CustomOperandNode",
+                    "@id": "smud:eapr-2023-09-22-cn-pa-fpl-100-150-right-operand",
+                    "urpx:stringValue": ">100 to 150%"
+                  }
+                }
+              }
+            },
+            {
+              "@type": "urpx:ProfileAlternative",
+              "@id": "smud:eapr-2023-09-22-pa-fpl-150-200",
+              "urpx:name": "Household income above 150 to 200 percent of the federal poverty level",
+              "urpx:hasConditionExpression": {
+                "@type": "urpx:ConditionExpression",
+                "@id": "smud:eapr-2023-09-22-cx-pa-fpl-150-200",
+                "urpx:rootNode": {
+                  "@type": "urpx:ComparisonNode",
+                  "@id": "smud:eapr-2023-09-22-cn-pa-fpl-150-200",
+                  "urpx:operator": {
+                    "@id": "urpx:equalsOperator"
+                  },
+                  "urpx:leftOperand": {
+                    "@type": "urpx:CustomOperandNode",
+                    "@id": "smud:eapr-2023-09-22-cn-pa-fpl-150-200-left-operand",
+                    "urpx:customConditionProperty": "federalPovertyLevelBand"
+                  },
+                  "urpx:rightOperand": {
+                    "@type": "urpx:CustomOperandNode",
+                    "@id": "smud:eapr-2023-09-22-cn-pa-fpl-150-200-right-operand",
+                    "urpx:stringValue": ">150 to 200%"
+                  }
+                }
+              }
             }
           ]
         }
@@ -234,6 +642,106 @@
             "urpx:startDate": "2023-09-22",
             "urpx:name": "EAPR BSC Discount Credit",
             "urpx:unitPrice": "-10.00"
+          }
+        ],
+        "urpx:hasPriceSetAlternatives": [
+          {
+            "@type": "urpx:PriceSetAlternatives",
+            "@id": "smud:eapr-2023-09-22-psas-usage-discount",
+            "urpx:name": "EAPR Electricity Usage Discount, varies by federal poverty level",
+            "urpx:referencesProfileAlternatives": {
+              "@id": "smud:eapr-2023-09-22-pa-fpl"
+            },
+            "urpx:hasPriceSetAlternative": [
+              {
+                "@type": "urpx:PriceSetAlternative",
+                "@id": "smud:eapr-2023-09-22-psa-usage-discount-fpl-0-50",
+                "urpx:referencesProfileAlternative": {
+                  "@id": "smud:eapr-2023-09-22-pa-fpl-0-50"
+                },
+                "urpx:hasPrice": [
+                  {
+                    "@type": "urpx:Price",
+                    "@id": "smud:eapr-2023-09-22-price-usage-discount-fpl-0-50",
+                    "urpx:referencesPriceDefinition": {
+                      "@id": "smud:eapr-2023-09-22-pd-usage-discount"
+                    },
+                    "urpx:referencesMetricInput": {
+                      "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-0-50"
+                    },
+                    "urpx:startDate": "2023-09-22",
+                    "urpx:name": "EAPR Electricity Usage Discount, 0 to 50 percent FPL (up to $60 per month)",
+                    "urpx:unitPrice": "-1"
+                  }
+                ]
+              },
+              {
+                "@type": "urpx:PriceSetAlternative",
+                "@id": "smud:eapr-2023-09-22-psa-usage-discount-fpl-50-100",
+                "urpx:referencesProfileAlternative": {
+                  "@id": "smud:eapr-2023-09-22-pa-fpl-50-100"
+                },
+                "urpx:hasPrice": [
+                  {
+                    "@type": "urpx:Price",
+                    "@id": "smud:eapr-2023-09-22-price-usage-discount-fpl-50-100",
+                    "urpx:referencesPriceDefinition": {
+                      "@id": "smud:eapr-2023-09-22-pd-usage-discount"
+                    },
+                    "urpx:referencesMetricInput": {
+                      "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-50-100"
+                    },
+                    "urpx:startDate": "2023-09-22",
+                    "urpx:name": "EAPR Electricity Usage Discount, above 50 to 100 percent FPL (up to $32 per month)",
+                    "urpx:unitPrice": "-1"
+                  }
+                ]
+              },
+              {
+                "@type": "urpx:PriceSetAlternative",
+                "@id": "smud:eapr-2023-09-22-psa-usage-discount-fpl-100-150",
+                "urpx:referencesProfileAlternative": {
+                  "@id": "smud:eapr-2023-09-22-pa-fpl-100-150"
+                },
+                "urpx:hasPrice": [
+                  {
+                    "@type": "urpx:Price",
+                    "@id": "smud:eapr-2023-09-22-price-usage-discount-fpl-100-150",
+                    "urpx:referencesPriceDefinition": {
+                      "@id": "smud:eapr-2023-09-22-pd-usage-discount"
+                    },
+                    "urpx:referencesMetricInput": {
+                      "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-100-150"
+                    },
+                    "urpx:startDate": "2023-09-22",
+                    "urpx:name": "EAPR Electricity Usage Discount, above 100 to 150 percent FPL (up to $10 per month)",
+                    "urpx:unitPrice": "-1"
+                  }
+                ]
+              },
+              {
+                "@type": "urpx:PriceSetAlternative",
+                "@id": "smud:eapr-2023-09-22-psa-usage-discount-fpl-150-200",
+                "urpx:referencesProfileAlternative": {
+                  "@id": "smud:eapr-2023-09-22-pa-fpl-150-200"
+                },
+                "urpx:hasPrice": [
+                  {
+                    "@type": "urpx:Price",
+                    "@id": "smud:eapr-2023-09-22-price-usage-discount-fpl-150-200",
+                    "urpx:referencesPriceDefinition": {
+                      "@id": "smud:eapr-2023-09-22-pd-usage-discount"
+                    },
+                    "urpx:referencesMetricInput": {
+                      "@id": "smud:eapr-2023-09-22-mi-usage-discount-fpl-150-200"
+                    },
+                    "urpx:startDate": "2023-09-22",
+                    "urpx:name": "EAPR Electricity Usage Discount, above 150 to 200 percent FPL (up to $0 per month)",
+                    "urpx:unitPrice": "-1"
+                  }
+                ]
+              }
+            ]
           }
         ]
       },
@@ -278,7 +786,7 @@
           "urpx:evaluationKind": {
             "@id": "urpx:coverageEvaluation"
           },
-          "urpx:description": "Schedule EAPR grants residential customers two discounts and this filing models the smaller one. Section III.1, a $10 per month System Infrastructure Fixed Charge discount, is represented. Section III.2 is not: a 100 percent reduction in electricity usage cost per kWh up to a monthly maximum that steps with the household's federal poverty level, $60 at 0 to 50 percent, $32 above 50 to 100 percent, $10 above 100 to 150 percent and $0 above 150 to 200 percent. Nor is Section III.3, the EAPR Rate Stabilization Fund discount, a further $0 to $35 per month available only at 0 to 50 percent of the federal poverty level, its amount set each year by SMUD's Accountant from whatever discretionary non-retail revenue is available and fixed before the year it applies. The effect on a consumer depends entirely on which income tier a customer sits in: between 150 and 200 percent of the federal poverty level the usage cap is $0 and the modeled $10 is the whole benefit, while at 0 to 50 percent the two unmodeled components are worth up to $95 a month more than what this filing carries. Section VIII is also unrepresented: the fixed-charge discount is prorated against 30 days for billing periods shorter than 27 days, while the maximum usage discount is expressly not prorated. Sections IV and V are out of scope rather than missing. They cover nonprofit organizations and Commercial and Industrial customers: the nonprofit eligibility tests, including the requirement that at least 75 percent of an associated daytime-services facility's square footage serve the qualifying functions, and the Commercial and Industrial discounts of 15 percent on usage, maximum demand, site infrastructure and summer peak demand charges with a 35 percent System Infrastructure Fixed Charge discount on CI-TOD1 and 15 percent on CI-TOD2 through CI-TOD4. This filing is scoped to residential service.",
+          "urpx:description": "Schedule EAPR grants residential customers two discounts and this filing models both. Section III.1, a $10 per month System Infrastructure Fixed Charge discount, is represented. Section III.2, a 100 percent reduction in electricity usage cost per kWh up to a monthly maximum that steps with the household's federal poverty level, $60 at 0 to 50 percent, $32 above 50 to 100 percent, $10 above 100 to 150 percent and $0 above 150 to 200 percent, is represented as the lesser of the billing period's usage cost and the cap for the selected federal poverty level band, using value-expression and currency-unit terms that no URPX release yet defines. Section III.3 is not: the EAPR Rate Stabilization Fund discount, a further $0 to $35 per month available only at 0 to 50 percent of the federal poverty level, its amount set each year by SMUD's Accountant from whatever discretionary non-retail revenue is available and fixed before the year it applies. At 0 to 50 percent of the federal poverty level it is worth up to $35 a month more than what this filing carries. Section VIII's proration of the fixed-charge discount is unrepresented: it is prorated against 30 days for billing periods shorter than 27 days. The maximum usage discount is not prorated, which the fixed monthly cap carries. Sections IV and V are out of scope rather than missing. They cover nonprofit organizations and Commercial and Industrial customers: the nonprofit eligibility tests, including the requirement that at least 75 percent of an associated daytime-services facility's square footage serve the qualifying functions, and the Commercial and Industrial discounts of 15 percent on usage, maximum demand, site infrastructure and summer peak demand charges with a 35 percent System Infrastructure Fixed Charge discount on CI-TOD1 and 15 percent on CI-TOD2 through CI-TOD4. This filing is scoped to residential service.",
           "urpx:evaluatedOn": "2026-09-21T00:00:00"
         }
       }

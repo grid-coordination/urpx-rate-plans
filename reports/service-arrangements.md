@@ -25,15 +25,15 @@ An arrangement is identified by its own components: the base version IRI, the so
 | Arrangements enumerated (base + at most one modifier) | 145 |
 | of which base alone | 33 |
 | of which base + one modifier | 112 |
-| Fully-determined arrangements after expanding open dimensions | 1156 |
+| Fully-determined arrangements after expanding open dimensions | 1165 |
 
 | Outcome | Arrangements | Fully determined |
 |---|---:|---:|
-| **servable** | 126 | 547 |
+| **servable** | 126 | 556 |
 | **not priced per kWh** | 9 | 54 |
 | **blocked** | 6 | 33 |
 | **not measured** | 4 | 522 |
-| **total** | 145 | 1156 |
+| **total** | 145 | 1165 |
 
 - **servable** resolves to a number at every probe instant.
 - **not priced per kWh** resolves, and legitimately prices nothing per kWh. CPAU E-14 and E-16 are street lighting: they price per lamp, per fixture and per month. This is not a defect.
@@ -108,8 +108,9 @@ A dimension an arrangement's components leave open. The corpus states the altern
 | `sce:da-crs-2026-03-20-pa-pcia-vintage`<br>PCIA vintage year, set at the PCIA Vintage Determination Date and retained thereafter | 20 | 4 | `urpx:PriceSetAlternative`<br>`sce:da-crs-2026-03-20-psa-pcia-v20` | `sce:da-crs-2026-03-20-pa-vintage-2001` |
 | `sce:nbt-2025-04-23-pa-vintage`<br>NBT export compensation vintage (NBT Vintage Label), fixed for the customer's lock-in period | 5 | 1 | `urpx:PriceSetAlternative`<br>`sce:nbt-2025-04-23-psa-export-n` | no |
 | `sdge:nbt-2025-01-27-pa-vintage`<br>NBT export compensation vintage (NBT Vintage Label), fixed for the customer's lock-in period | 5 | 1 | `urpx:PriceSetAlternative`<br>`sdge:nbt-2025-01-27-psa-export-nbt` | no |
+| `smud:eapr-2023-09-22-pa-fpl`<br>Federal poverty level band of total gross household income (Schedule EAPR Section III.2) | 4 | 3 | `urpx:PriceSetAlternative`<br>`smud:eapr-2023-09-22-psa-usage-discount-fpl-` | no |
 
-The baseline exercised a specific selection in 116 of the 1156 fully-determined arrangements: 108 leave no dimension open, and 8 leave open only a dimension `dev/validate_v020.clj` nominates a cell in. Everywhere else the baseline resolved without making a selection, which establishes that the dimension does not gate the per-kWh energy rate at the probe instants. It does not establish which alternative the recorded rate belongs to, and it says nothing about the rest of the bill. The Selected-over column is where to look: PG&E's income tier is selected over `psa-bsc-tier-`, the Basic Service Charge price set, so CARE, FERA and standard share a marginal energy rate in this model and part company on a charge the baseline does not probe.
+The baseline exercised a specific selection in 113 of the 1165 fully-determined arrangements: 105 leave no dimension open, and 8 leave open only a dimension `dev/validate_v020.clj` nominates a cell in. Everywhere else the baseline resolved without making a selection, which establishes that the dimension does not gate the per-kWh energy rate at the probe instants. It does not establish which alternative the recorded rate belongs to, and it says nothing about the rest of the bill. The Selected-over column is where to look: PG&E's income tier is selected over `psa-bsc-tier-`, the Basic Service Charge price set, so CARE, FERA and standard share a marginal energy rate in this model and part company on a charge the baseline does not probe.
 
 ## What a fuller enumeration would need
 

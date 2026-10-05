@@ -25,7 +25,7 @@
 
  :totals
   {:arrangements 145
-   :fully-determined 1156
+   :fully-determined 1165
    :servable 126
    :not-priced-per-kwh 9
    :blocked 6
@@ -825,8 +825,8 @@
    :baseline-keys ["plan|us/ca/smud/electricity/fixed/versions/2026-01-01/rate-plan_smud_fixed_2026-01-01.jsonld"]}
   {:base "smud:fixed-2026-01-01"
    :modifiers ["smud:eapr-2023-09-22"]
-   :open-dimensions []
-   :selections 1
+   :open-dimensions ["smud:eapr-2023-09-22-pa-fpl"]
+   :selections 4
    :outcome :servable
    :baseline-keys ["compose|us/ca/smud/electricity/eapr/versions/2023-09-22/rate-plan-modifier_smud_eapr_2023-09-22.jsonld|smud:fixed"]}
   {:base "smud:fixed-2026-01-01"
@@ -855,8 +855,8 @@
    :baseline-keys ["compose|us/ca/smud/electricity/cpp/versions/2026-01-01/rate-plan-modifier_smud_cpp_2026-01-01.jsonld|smud:tod-5-8pm"]}
   {:base "smud:tod-5-8pm-2026-01-01"
    :modifiers ["smud:eapr-2023-09-22"]
-   :open-dimensions []
-   :selections 1
+   :open-dimensions ["smud:eapr-2023-09-22-pa-fpl"]
+   :selections 4
    :outcome :servable
    :baseline-keys ["compose|us/ca/smud/electricity/eapr/versions/2023-09-22/rate-plan-modifier_smud_eapr_2023-09-22.jsonld|smud:tod-5-8pm"]}
   {:base "smud:tod-5-8pm-2026-01-01"
@@ -897,8 +897,8 @@
    :baseline-keys ["compose|us/ca/smud/electricity/cpp/versions/2026-01-01/rate-plan-modifier_smud_cpp_2026-01-01.jsonld|smud:tod-low-use"]}
   {:base "smud:tod-low-use-2026-01-01"
    :modifiers ["smud:eapr-2023-09-22"]
-   :open-dimensions []
-   :selections 1
+   :open-dimensions ["smud:eapr-2023-09-22-pa-fpl"]
+   :selections 4
    :outcome :servable
    :baseline-keys ["compose|us/ca/smud/electricity/eapr/versions/2023-09-22/rate-plan-modifier_smud_eapr_2023-09-22.jsonld|smud:tod-low-use"]}
   {:base "smud:tod-low-use-2026-01-01"
